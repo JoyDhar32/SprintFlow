@@ -22,7 +22,9 @@ class RegisteredUserController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Auth/Register');
+        return Inertia::render('Auth/Register', [
+            'inviteEmail' => request()->query('email', ''),
+        ]);
     }
 
     /**
@@ -49,7 +51,7 @@ class RegisteredUserController extends Controller
         Auth::login($user);
 
         // Auto-accept pending invitation if one exists in session
-        if ($token = session()->pull('invitation_token')) {
+        if ($token = session()->get('invitation_token')) {
             $invitation = TeamInvitation::where('token', $token)
                 ->whereNull('accepted_at')
                 ->with('team')
@@ -57,6 +59,7 @@ class RegisteredUserController extends Controller
 
             if ($invitation && ! $invitation->isExpired() &&
                 strtolower($user->email) === strtolower($invitation->email)) {
+                session()->forget('invitation_token');
                 $team = $invitation->team;
                 if (! $team->members()->where('user_id', $user->id)->exists()) {
                     $team->members()->attach($user->id, [

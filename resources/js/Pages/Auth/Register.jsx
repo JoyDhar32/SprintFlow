@@ -1,10 +1,11 @@
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
-export default function Register() {
+export default function Register({ inviteEmail = '' }) {
+    const fromInvite = !!inviteEmail;
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
-        email: '',
+        email: inviteEmail,
         password: '',
         password_confirmation: '',
     });
@@ -45,13 +46,17 @@ export default function Register() {
                     <input
                         id="email"
                         type="email"
-                        className={`form-control${errors.email ? ' is-invalid' : ''}`}
+                        className={`form-control${errors.email ? ' is-invalid' : ''}${fromInvite ? ' bg-light' : ''}`}
                         value={data.email}
                         autoComplete="username"
-                        onChange={(e) => setData('email', e.target.value)}
+                        onChange={(e) => !fromInvite && setData('email', e.target.value)}
+                        readOnly={fromInvite}
                         placeholder="you@example.com"
                         required
                     />
+                    {fromInvite && (
+                        <div className="form-text">This email is tied to your invitation and cannot be changed.</div>
+                    )}
                     {errors.email && <div className="invalid-feedback">{errors.email}</div>}
                 </div>
 

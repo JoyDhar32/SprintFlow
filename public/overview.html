@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SprintFlow — Application Overview</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #f8f9fa;
+    color: #1a1a2e;
+    min-height: 100vh;
+    padding: 32px 40px;
+  }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 36px;
+    border-bottom: 1px solid #dde1e7;
+    padding-bottom: 20px;
+  }
+
+  header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: #111827;
+  }
+
+  header span {
+    font-size: 13px;
+    color: #6b7280;
+    font-weight: 400;
+  }
+
+  .legend {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 36px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  /* ── MAIN GRID ── */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* Row layout */
+  .row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    position: relative;
+  }
+
+  /* Arrow connector between rows */
+  .row-connector {
+    display: flex;
+    justify-content: center;
+    padding: 6px 0;
+    position: relative;
+  }
+
+  .row-connector::before {
+    content: '';
+    display: block;
+    width: 2px;
+    height: 24px;
+    background: #cbd5e1;
+  }
+
+  .row-connector .arrow-head {
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 7px solid #cbd5e1;
+  }
+
+  /* ── NODE ── */
+  .node {
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 14px 18px;
+    min-width: 160px;
+    position: relative;
+    transition: box-shadow 0.15s;
+  }
+
+  .node:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  }
+
+  .node-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 4px;
+  }
+
+  .node-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+    line-height: 1.3;
+  }
+
+  .node-desc {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
+  /* Color accents */
+  .node-auth    { border-left: 3px solid #6366f1; }
+  .node-team    { border-left: 3px solid #0ea5e9; }
+  .node-project { border-left: 3px solid #f59e0b; }
+  .node-task    { border-left: 3px solid #10b981; }
+  .node-board   { border-left: 3px solid #10b981; }
+  .node-support { border-left: 3px solid #94a3b8; }
+  .node-billing { border-left: 3px solid #8b5cf6; }
+
+  .label-auth    { color: #6366f1; }
+  .label-team    { color: #0ea5e9; }
+  .label-project { color: #f59e0b; }
+  .label-task    { color: #10b981; }
+  .label-support { color: #94a3b8; }
+  .label-billing { color: #8b5cf6; }
+
+  /* ── HORIZONTAL CONNECTOR ── */
+  .h-connector {
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    margin-top: 28px;
+  }
+
+  .h-line {
+    width: 32px;
+    height: 2px;
+    background: #cbd5e1;
+    position: relative;
+  }
+
+  .h-line::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: -4px;
+    width: 0;
+    height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 7px solid #cbd5e1;
+  }
+
+  /* ── SECTION GROUPINGS ── */
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #94a3b8;
+    margin-bottom: 12px;
+  }
+
+  /* Top level: single wide path */
+  .lane {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    width: 100%;
+  }
+
+  /* Supporting modules row */
+  .support-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .support-node {
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-left: 3px solid #94a3b8;
+    border-radius: 8px;
+    padding: 12px 16px;
+    min-width: 150px;
+    flex: 1;
+  }
+
+  .support-node.billing-node {
+    border-left-color: #8b5cf6;
+  }
+
+  /* task detail sub-items */
+  .sub-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .tag {
+    font-size: 11px;
+    background: #f1f5f9;
+    color: #475569;
+    border-radius: 4px;
+    padding: 2px 8px;
+    border: 1px solid #e2e8f0;
+  }
+
+  /* ── MAIN PIPELINE ── */
+  .pipeline {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .pipeline-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    flex-shrink: 0;
+  }
+
+  /* Kanban statuses */
+  .kanban-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .kstatus {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+    border: 1.5px solid;
+  }
+
+  .kstatus-backlog    { background: #f8fafc; color: #64748b; border-color: #cbd5e1; }
+  .kstatus-todo       { background: #f0f9ff; color: #0369a1; border-color: #bae6fd; }
+  .kstatus-inprogress { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+  .kstatus-inreview   { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+  .kstatus-done       { background: #f0fdf4; color: #166534; border-color: #bbf7d0; }
+  .kstatus-cancelled  { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+
+  /* divider */
+  .section-divider {
+    border: none;
+    border-top: 1px dashed #e2e8f0;
+    margin: 32px 0;
+  }
+
+  /* footer */
+  footer {
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid #dde1e7;
+    font-size: 11px;
+    color: #94a3b8;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SprintFlow</h1>
+  <span>Application Flow Overview — Landscape</span>
+</header>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#6366f1"></div> Authentication</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#0ea5e9"></div> Team Management</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div> Project</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div> Task / Board</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#8b5cf6"></div> Billing</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#94a3b8"></div> Supporting Services</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SECTION 1 — MAIN USER JOURNEY (PIPELINE)
+════════════════════════════════════════════════ -->
+<div class="section-title">01 — Core User Journey</div>
+
+<div class="pipeline">
+
+  <!-- STEP 1: Auth -->
+  <div class="pipeline-step">
+    <div class="node node-auth" style="width:172px">
+      <div class="node-label label-auth">Entry Point</div>
+      <div class="node-title">Authentication</div>
+      <div class="node-desc">Register / Login<br>Email verification<br>Password reset</div>
+    </div>
+    <div class="h-connector"><div class="h-line"></div></div>
+  </div>
+
+  <!-- STEP 2: Dashboard -->
+  <div class="pipeline-step">
+    <div class="node node-auth" style="width:172px">
+      <div class="node-label label-auth">Home</div>
+      <div class="node-title">Dashboard</div>
+      <div class="node-desc">Task stats, upcoming<br>tasks, activity feed,<br>project list</div>
+    </div>
+    <div class="h-connector"><div class="h-line"></div></div>
+  </div>
+
+  <!-- STEP 3: Teams -->
+  <div class="pipeline-step">
+    <div class="node node-team" style="width:172px">
+      <div class="node-label label-team">Workspace</div>
+      <div class="node-title">Team</div>
+      <div class="node-desc">Create team, invite<br>members via email,<br>manage roles</div>
+    </div>
+    <div class="h-connector"><div class="h-line"></div></div>
+  </div>
+
+  <!-- STEP 4: Project -->
+  <div class="pipeline-step">
+    <div class="node node-project" style="width:172px">
+      <div class="node-label label-project">Initiative</div>
+      <div class="node-title">Project</div>
+      <div class="node-desc">Create project, set<br>key &amp; color, seed<br>default labels</div>
+    </div>
+    <div class="h-connector"><div class="h-line"></div></div>
+  </div>
+
+  <!-- STEP 5: Kanban Board -->
+  <div class="pipeline-step">
+    <div class="node node-board" style="width:220px">
+      <div class="node-label label-task">Core Feature</div>
+      <div class="node-title">Kanban Board</div>
+      <div class="node-desc">Drag &amp; drop tasks across<br>columns, real-time updates,<br>inline task creation</div>
+      <div class="kanban-row">
+        <span class="kstatus kstatus-backlog">Backlog</span>
+        <span class="kstatus kstatus-todo">To Do</span>
+        <span class="kstatus kstatus-inprogress">In Progress</span>
+        <span class="kstatus kstatus-inreview">In Review</span>
+        <span class="kstatus kstatus-done">Done</span>
+        <span class="kstatus kstatus-cancelled">Cancelled</span>
+      </div>
+    </div>
+    <div class="h-connector"><div class="h-line"></div></div>
+  </div>
+
+  <!-- STEP 6: Task Detail -->
+  <div class="pipeline-step">
+    <div class="node node-task" style="width:200px">
+      <div class="node-label label-task">Work Item</div>
+      <div class="node-title">Task Detail</div>
+      <div class="node-desc">Full task view with<br>activity history</div>
+      <div class="sub-items">
+        <span class="tag">Comments</span>
+        <span class="tag">Attachments</span>
+        <span class="tag">Labels</span>
+        <span class="tag">Priority</span>
+        <span class="tag">Assignee</span>
+        <span class="tag">Due Date</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<hr class="section-divider">
+
+<!-- ═══════════════════════════════════════════════
+     SECTION 2 — DATA MODEL HIERARCHY
+════════════════════════════════════════════════ -->
+<div class="section-title">02 — Data Model Hierarchy</div>
+
+<div style="display:flex; gap:0; align-items:flex-start; overflow-x:auto; padding-bottom:8px;">
+
+  <div class="node node-auth" style="width:150px; flex-shrink:0">
+    <div class="node-label label-auth">Model</div>
+    <div class="node-title">User</div>
+    <div class="node-desc">id, name, email<br>avatar, role</div>
+  </div>
+  <div class="h-connector"><div class="h-line"></div></div>
+
+  <div style="flex-shrink:0">
+    <div class="node node-team" style="width:160px">
+      <div class="node-label label-team">Model</div>
+      <div class="node-title">Team</div>
+      <div class="node-desc">name, slug, owner<br>↳ members (pivot role)</div>
+    </div>
+  </div>
+  <div class="h-connector"><div class="h-line"></div></div>
+
+  <div style="flex-shrink:0">
+    <div class="node node-project" style="width:168px">
+      <div class="node-label label-project">Model</div>
+      <div class="node-title">Project</div>
+      <div class="node-desc">name, key, color<br>status, start/end dates<br>↳ labels (auto-seeded)</div>
+    </div>
+  </div>
+  <div class="h-connector"><div class="h-line"></div></div>
+
+  <div style="flex-shrink:0">
+    <div class="node node-task" style="width:180px">
+      <div class="node-label label-task">Model</div>
+      <div class="node-title">Task</div>
+      <div class="node-desc">title, status, priority<br>position, due_date<br>reporter, assignee</div>
+    </div>
+  </div>
+  <div class="h-connector"><div class="h-line"></div></div>
+
+  <div style="flex-shrink:0; display:flex; flex-direction:column; gap:10px;">
+    <div class="node node-task" style="width:150px">
+      <div class="node-label label-task">Model</div>
+      <div class="node-title">Comment</div>
+      <div class="node-desc">content, user<br>notifies stakeholders</div>
+    </div>
+    <div class="node node-task" style="width:150px">
+      <div class="node-label label-task">Model</div>
+      <div class="node-title">Attachment</div>
+      <div class="node-desc">file, UUID name<br>max 10 MB</div>
+    </div>
+    <div class="node node-support" style="width:150px">
+      <div class="node-label label-support">Model</div>
+      <div class="node-title">Activity</div>
+      <div class="node-desc">polymorphic log<br>action + properties</div>
+    </div>
+  </div>
+
+</div>
+
+<hr class="section-divider">
+
+<!-- ═══════════════════════════════════════════════
+     SECTION 3 — SUPPORTING SERVICES
+════════════════════════════════════════════════ -->
+<div class="section-title">03 — Supporting Services</div>
+
+<div class="support-row">
+
+  <div class="support-node">
+    <div class="node-label label-team" style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:4px;">Invitations</div>
+    <div class="node-title" style="font-size:13px; font-weight:600;">Team Invitations</div>
+    <div class="node-desc" style="font-size:12px; color:#6b7280; margin-top:4px;">Email token, 7-day expiry<br>Auto-add on acceptance</div>
+  </div>
+
+  <div class="support-node">
+    <div class="node-label label-support" style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:4px;">Alerts</div>
+    <div class="node-title" style="font-size:13px; font-weight:600;">Notifications</div>
+    <div class="node-desc" style="font-size:12px; color:#6b7280; margin-top:4px;">In-app: task assigned,<br>comment, team invite<br>Mark read / read all</div>
+  </div>
+
+  <div class="support-node">
+    <div class="node-label label-support" style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:4px;">Audit</div>
+    <div class="node-title" style="font-size:13px; font-weight:600;">Activity Log</div>
+    <div class="node-desc" style="font-size:12px; color:#6b7280; margin-top:4px;">Tracks: created, status<br>changed, priority, assignee,<br>commented, deleted</div>
+  </div>
+
+  <div class="support-node">
+    <div class="node-label label-support" style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:4px;">Realtime</div>
+    <div class="node-title" style="font-size:13px; font-weight:600;">Pusher / WebSocket</div>
+    <div class="node-desc" style="font-size:12px; color:#6b7280; margin-top:4px;">Board updates: task created,<br>moved, deleted live<br>across team members</div>
+  </div>
+
+  <div class="support-node billing-node">
+    <div class="node-label label-billing" style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:4px;">Monetisation</div>
+    <div class="node-title" style="font-size:13px; font-weight:600;">Billing (Stripe)</div>
+    <div class="node-desc" style="font-size:12px; color:#6b7280; margin-top:4px;">Free / Basic / Standard /<br>Premium — member limits<br>per plan, webhook sync</div>
+  </div>
+
+</div>
+
+<hr class="section-divider">
+
+<!-- ═══════════════════════════════════════════════
+     SECTION 4 — AUTHORIZATION CHAIN
+════════════════════════════════════════════════ -->
+<div class="section-title">04 — Authorization Chain</div>
+
+<div style="display:flex; align-items:center; gap:0; flex-wrap:wrap;">
+
+  <div class="node node-auth" style="min-width:140px;">
+    <div class="node-label label-auth">Guard</div>
+    <div class="node-title">Auth Middleware</div>
+    <div class="node-desc">Authenticated<br>+ email verified</div>
+  </div>
+  <div class="h-connector"><div class="h-line"></div></div>
+
+  <div class="node node-team" style="min-width:155px;">
+    <div class="node-label label-team">Check</div>
+    <div class="node-title">Team Member?</div>
+    <div class="node-desc">User must belong<br>to project's team</div>
+  </div>
+  <div class="h-connector"><div class="h-line"></div></div>
+
+  <div class="node node-project" style="min-width:155px;">
+    <div class="node-label label-project">Check</div>
+    <div class="node-title">Project Access</div>
+    <div class="node-desc">authorizeProject<br>Access() helper</div>
+  </div>
+  <div class="h-connector"><div class="h-line"></div></div>
+
+  <div class="node node-task" style="min-width:155px;">
+    <div class="node-label label-task">Check</div>
+    <div class="node-title">Task Access</div>
+    <div class="node-desc">authorizeTask<br>Access() helper</div>
+  </div>
+  <div class="h-connector"><div class="h-line"></div></div>
+
+  <div class="node node-task" style="min-width:155px;">
+    <div class="node-label label-task">Ownership</div>
+    <div class="node-title">Owner-Only</div>
+    <div class="node-desc">Delete project / team<br>Edit own comments<br>Delete own files</div>
+  </div>
+
+</div>
+
+<hr class="section-divider">
+
+<!-- ═══════════════════════════════════════════════
+     SECTION 5 — TASK LIFECYCLE
+════════════════════════════════════════════════ -->
+<div class="section-title">05 — Task Lifecycle</div>
+
+<div style="display:flex; align-items:flex-start; gap:0; flex-wrap:wrap;">
+
+  <div class="pipeline-step">
+    <div class="node node-task" style="width:155px">
+      <div class="node-label label-task">1. Create</div>
+      <div class="node-title">New Task</div>
+      <div class="node-desc">Added to Backlog<br>position assigned<br>activity logged</div>
+    </div>
+    <div class="h-connector"><div class="h-line"></div></div>
+  </div>
+
+  <div class="pipeline-step">
+    <div class="node node-task" style="width:155px">
+      <div class="node-label label-task">2. Assign</div>
+      <div class="node-title">Assign Member</div>
+      <div class="node-desc">Notification sent<br>to assignee<br>activity logged</div>
+    </div>
+    <div class="h-connector"><div class="h-line"></div></div>
+  </div>
+
+  <div class="pipeline-step">
+    <div class="node node-task" style="width:155px">
+      <div class="node-label label-task">3. Progress</div>
+      <div class="node-title">Move Columns</div>
+      <div class="node-desc">Drag &amp; drop or<br>status dropdown<br>position tracked</div>
+    </div>
+    <div class="h-connector"><div class="h-line"></div></div>
+  </div>
+
+  <div class="pipeline-step">
+    <div class="node node-task" style="width:155px">
+      <div class="node-label label-task">4. Collaborate</div>
+      <div class="node-title">Comments &amp; Files</div>
+      <div class="node-desc">Thread discussion<br>upload attachments<br>notify stakeholders</div>
+    </div>
+    <div class="h-connector"><div class="h-line"></div></div>
+  </div>
+
+  <div class="pipeline-step">
+    <div class="node node-task" style="width:155px">
+      <div class="node-label label-task">5. Complete</div>
+      <div class="node-title">Mark Done</div>
+      <div class="node-desc">completed_at set<br>activity logged<br>stats updated</div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <span>SprintFlow — Laravel 12 · Inertia.js · React 18 · MySQL · Pusher · Stripe</span>
+  <span>Generated 2026-03-18</span>
+</footer>
+
+</body>
+</html>

@@ -21,7 +21,8 @@ class AuthenticatedSessionController extends Controller
     {
         return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
-            'status' => session('status'),
+            'status'           => session('status'),
+            'inviteEmail'      => request()->query('email', ''),
         ]);
     }
 
@@ -35,7 +36,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         // Auto-accept pending invitation if one exists in session
-        if ($token = session()->pull('invitation_token')) {
+        if ($token = session()->get('invitation_token')) {
             $user = Auth::user();
             $invitation = TeamInvitation::where('token', $token)
                 ->whereNull('accepted_at')
@@ -44,6 +45,7 @@ class AuthenticatedSessionController extends Controller
 
             if ($invitation && ! $invitation->isExpired() &&
                 strtolower($user->email) === strtolower($invitation->email)) {
+                session()->forget('invitation_token');
                 $team = $invitation->team;
                 if (! $team->members()->where('user_id', $user->id)->exists()) {
                     $team->members()->attach($user->id, [

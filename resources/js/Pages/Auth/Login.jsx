@@ -1,9 +1,9 @@
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
-export default function Login({ status, canResetPassword }) {
+export default function Login({ status, canResetPassword, inviteEmail = '' }) {
     const { data, setData, post, processing, errors, reset } = useForm({
-        email: '',
+        email: inviteEmail,
         password: '',
         remember: false,
     });
@@ -20,7 +20,11 @@ export default function Login({ status, canResetPassword }) {
             <Head title="Log in" />
 
             <h4 className="fw-bold mb-1">Welcome back</h4>
-            <p className="text-muted small mb-4">Sign in to your SprintFlow account</p>
+            <p className="text-muted small mb-4">
+                {inviteEmail
+                    ? `Sign in with ${inviteEmail} to accept your team invitation.`
+                    : 'Sign in to your SprintFlow account'}
+            </p>
 
             {status && (
                 <div className="alert alert-success small py-2">{status}</div>

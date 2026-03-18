@@ -224,10 +224,10 @@ class ProjectController extends Controller
         $project->load(['team', 'owner', 'labels']);
 
         return Inertia::render('Projects/Board', [
-            'project'       => $project,
-            'tasksByStatus' => $tasksByStatus,
-            'members'       => $members,
-            'statuses'      => $statuses,
+            'project'  => $project,
+            'tasks'    => $allTasks->values(),
+            'members'  => $members,
+            'statuses' => $statuses,
         ]);
     }
 
